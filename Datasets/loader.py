@@ -3,8 +3,8 @@ import numpy as np
 import sys
 
 # My anime list directories (1 indexed)
-myanimelist_anime = '../datasets/MyAnimeList/anime.csv'
-myanimelist_rating = '../datasets/MyAnimeList/rating.csv'
+myanimelist_anime = '../Datasets/MyAnimeList/anime.csv'
+myanimelist_rating = '../Datasets/MyAnimeList/rating.csv'
 len_user = 73517
 len_anime = 34528
 name = "MyAnimeList"
@@ -39,13 +39,19 @@ def read_csv(archive, feature_names=False):
 	return np.array(data).astype(int)
 
 
-def load(directory, tam="large", feature_names=False):
-	name2id, id2name = get_structs(myanimelist_anime)
-	rating = read_csv(directory, feature_names)
+def load(itemfile=None, ratingfile=None, tam="large", feature_names=False):
+	# set default values if user don't pass values
+	if itemfile is None:
+		itemfile = myanimelist_anime
+	if ratingfile is None:
+		ratingfile = myanimelist_rating
+
+	name2id, id2name = get_structs(itemfile)
+	rating = read_csv(ratingfile, feature_names)
 	return name2id, id2name, rating
 
 import os
-import urllib
+import urllib.request
 import zipfile
 
 def download(dataset_name=None, dataset_link=None):
@@ -61,8 +67,7 @@ def download(dataset_name=None, dataset_link=None):
 		os.makedirs(dataset_name)
 
     # download dataset on new folder
-	file = urllib.URLopener()
-	file.retrieve(dataset_link, dataset_directory)
+	urllib.request.urlretrieve(dataset_link, dataset_directory)
 
 	# extract all zipfile on new folder
 	zip_ref = zipfile.ZipFile(dataset_directory, 'r')

@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Ignore datasets
+Datasets/MyAnimeList/
+RecommenderSystem/Weights/
+RecommenderSystem/DataStructs/
+
 # C extensions
 *.so
 

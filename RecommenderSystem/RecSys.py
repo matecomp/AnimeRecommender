@@ -1,11 +1,5 @@
 import numpy as np
 
-#Import dataset
-import sys
-sys.path.append('../')
-from datasets.load_data import *
-
-
 class RecSys:
 	#Constructor
 	def __init__(self, features, name2id, id2name, rating, reg, eta, epochs):
@@ -150,25 +144,10 @@ class RecSys:
 
 #Using model
 def _start_shell(local_ns=None):
-  # An interactive shell is useful for debugging/development.
-  import IPython
-  user_ns = {}
-  if local_ns:
-    user_ns.update(local_ns)
-  user_ns.update(globals())
-  IPython.start_ipython(argv=[], user_ns=user_ns)
-
-
-
-if __name__ == '__main__':
-	
-	name2id, id2name, rating = load('MyAnimeList', 'medium')
-
-	#Config
-	features = 100
-	reg = 1e-06
-	eta = 3e-01
-	epochs = 50
-
-	model = RecSys(features, name2id, id2name, rating, reg, eta, epochs)
-	_start_shell()
+# An interactive shell is useful for debugging/development.
+	import IPython
+	user_ns = {}
+	if local_ns:
+		user_ns.update(local_ns)
+	user_ns.update(globals())
+	IPython.start_ipython(argv=[], user_ns=user_ns)

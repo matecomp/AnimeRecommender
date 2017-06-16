@@ -11,10 +11,13 @@ class RecSys:
 		self.name2id = name2id
 		self.id2name = np.array(id2name)
 		self.know = dict()
+		self.know_test = dict()
 		self.uD = dict()
 		self.wD = dict()
 		self.rating_generator = rating_generator
 		self.process_ratings()
+		self.process_ratings()
+		self.process_test()
 		self.calcule_mean()
 		self.reg = reg
 		self.eta = eta
@@ -42,6 +45,18 @@ class RecSys:
 				if wD.get(wid) is None:
 					wD[wid] = []
 				wD[wid].append(uid)
+
+	#Get test data
+	def process_test(self):
+		data = next(self.rating_generator)
+		know = self.know_test
+
+		for rate in data:
+			uid = int(rate[0])
+			wid = int(rate[1])
+			value = float(rate[2])
+			if value != -1:
+				know[uid,wid] = value
 
 	def calcule_mean(self):
 		self.user_mean = dict()
@@ -120,17 +135,27 @@ class RecSys:
 		b = self.W[item]
 		return np.dot(a,b) + self.user_mean[user]
 
-	def evaluate(self, log=False):
+	def evaluate(self, test=False, log=False):
+		if test is True:
+			know = self.know_test
+		else:
+			know = self.know
+
 		loss = 0.0
-		for user, item in self.know:
-			y = self.know[user,item]
+		for user, item in know:
+			if self.uD.get(user) is None:
+				continue
+			if self.wD.get(item) is None:
+				continue
+
+			y = know[user,item]
 			y_= self.predict(user,item)
 			loss += (y-y_)**2
 			if log is True:
 				print("User({0}) and Item({1}):".format(user, self.id2name[item]))
 				print("Rate = {0}, Predict = {1}".format(y,y_))
 				print("Diff = {0}\n".format(abs(y-y_)))
-		return (loss/len(self.know))**(0.5)
+		return (loss/len(know))**(0.5)
 
 	def save(self, directory):
 		np.save(directory+"/user", self.U)

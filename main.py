@@ -1,6 +1,16 @@
 from RecommenderSystem.RecSys import *
 from Datasets.loader import *
 
+#Using model
+def _start_shell(local_ns=None):
+# An interactive shell is useful for debugging/development.
+	import IPython
+	user_ns = {}
+	if local_ns:
+		user_ns.update(local_ns)
+	user_ns.update(globals())
+	IPython.start_ipython(argv=[], user_ns=user_ns)
+
 if __name__ == '__main__':
 	myanimelist_anime = 'Datasets/MyAnimeList/anime.csv'
 	myanimelist_rating = 'Datasets/MyAnimeList/rating.csv'
@@ -10,15 +20,16 @@ if __name__ == '__main__':
 	anime_generator, rating_generator = load(myanimelist_anime,
 											myanimelist_rating,
 										 	feature_ignore, size_ratings)
-	# anime_generator = read_csv(myanimelist_anime,True)
-	print(next(rating_generator))
-	# print(next(anime_generator))
-	
-	# #Config
-	# features = 100
-	# reg = 1e-06
-	# eta = 3e-01
-	# epochs = 50
 
-	# model = RecSys(features, name2id, id2name, rating, reg, eta, epochs)
-	# _start_shell()
+	itens = next(anime_generator)
+	name2id, id2name = preprocessing(itens)
+	# print(len(itens), len(name2id), len(id2name))
+	
+	#Config
+	features = 100
+	reg = 1e-06
+	eta = 3e-01
+	epochs = 50
+
+	model = RecSys(name2id, id2name, rating_generator, features, reg, eta, epochs)
+	_start_shell()

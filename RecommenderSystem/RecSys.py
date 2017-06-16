@@ -2,15 +2,19 @@ import numpy as np
 
 class RecSys:
 	#Constructor
-	def __init__(self, features, name2id, id2name, rating, reg, eta, epochs):
+	def __init__(self, name2id, id2name, rating_generator, k, reg, eta, epochs):
 		len_user = 73517
 		len_w = 34528
-		self.U = self.get_randvec(len_user,features)
-		self.W = self.get_randvec(len_w,features)
-		self.features = features
+		self.U = self.get_randvec(len_user,k)
+		self.W = self.get_randvec(len_w,k)
+		self.k = k
 		self.name2id = name2id
 		self.id2name = np.array(id2name)
-		self.divide_ratings(rating)
+		self.know = dict()
+		self.uD = dict()
+		self.wD = dict()
+		self.rating_generator = rating_generator
+		self.process_ratings()
 		self.calcule_mean()
 		self.reg = reg
 		self.eta = eta
@@ -21,12 +25,11 @@ class RecSys:
 		return np.random.randn(N,D) / D
 
 	#Get valid item rates
-	def divide_ratings(self, data):
-		know = dict()
-		#animes that user rate
-		uD = dict()
-		#user that rate anime
-		wD = dict()
+	def process_ratings(self):
+		data = next(self.rating_generator)
+		know = self.know
+		uD = self.uD
+		wD = self.wD
 		for rate in data:
 			uid = int(rate[0])
 			wid = int(rate[1])
@@ -39,9 +42,6 @@ class RecSys:
 				if wD.get(wid) is None:
 					wD[wid] = []
 				wD[wid].append(uid)
-		self.know = know
-		self.uD = uD
-		self.wD = wD
 
 	def calcule_mean(self):
 		self.user_mean = dict()
@@ -57,9 +57,9 @@ class RecSys:
 		error = np.dot(self.U[uid],self.W[wid].T) + self.user_mean[uid] - self.know[uid,wid]
 		loss = 0.5 * error**2
 		if uorw == 0:
-			regularization = 0.5 * reg * np.linalg.norm(self.U[uid])**2
+			regularization = 0.5 * self.reg * np.linalg.norm(self.U[uid])**2
 		else:
-			regularization = 0.5 * reg * np.linalg.norm(self.W[wid])**2
+			regularization = 0.5 * self.reg * np.linalg.norm(self.W[wid])**2
 		return loss + regularization, error
 
 	def train(self):
@@ -69,7 +69,7 @@ class RecSys:
 		for uid in self.uD:
 			#Animes that rate for uid:
 			Ruw = self.uD[uid]
-			grad = np.zeros(self.features).astype(np.float)
+			grad = np.zeros(self.k).astype(np.float)
 			loss = 0.0
 			for wid in Ruw:
 				temp, error = self.cost(uid,wid,0)
@@ -84,7 +84,7 @@ class RecSys:
 		for wid in self.wD:
 			#User that rate the anime wid:
 			Ruw = self.wD[wid]
-			grad = np.zeros(self.features).astype(np.float)
+			grad = np.zeros(self.k).astype(np.float)
 			loss = 0.0
 			for uid in Ruw:
 				temp, error = self.cost(uid,wid,1)
@@ -139,15 +139,3 @@ class RecSys:
 	def load(self, directory):
 		self.U = np.load(directory+"/user.npy")
 		self.W = np.load(directory+"/item.npy")
-
-
-
-#Using model
-def _start_shell(local_ns=None):
-# An interactive shell is useful for debugging/development.
-	import IPython
-	user_ns = {}
-	if local_ns:
-		user_ns.update(local_ns)
-	user_ns.update(globals())
-	IPython.start_ipython(argv=[], user_ns=user_ns)

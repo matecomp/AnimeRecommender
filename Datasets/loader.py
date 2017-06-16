@@ -41,7 +41,7 @@ def read_csv(archive, feature_ignore=True, size=None):
 				feature_ignore = False
 				indexed = 0
 				continue
-			data.append(list(map(lambda word: word.lower(), row)))
+			data.append(row)
 			if (idx+indexed)%size == 0:
 				copy = deepcopy(data)
 				data = list()

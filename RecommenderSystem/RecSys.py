@@ -142,12 +142,13 @@ class RecSys:
 			know = self.know
 
 		loss = 0.0
+		count = 0
 		for user, item in know:
 			if self.uD.get(user) is None:
 				continue
 			if self.wD.get(item) is None:
 				continue
-
+			count += 1
 			y = know[user,item]
 			y_= self.predict(user,item)
 			loss += (y-y_)**2
@@ -155,7 +156,7 @@ class RecSys:
 				print("User({0}) and Item({1}):".format(user, self.id2name[item]))
 				print("Rate = {0}, Predict = {1}".format(y,y_))
 				print("Diff = {0}\n".format(abs(y-y_)))
-		return (loss/len(know))**(0.5)
+		return (loss/count)**(0.5)
 
 	def save(self, directory):
 		np.save(directory+"/user", self.U)

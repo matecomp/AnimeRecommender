@@ -6,17 +6,19 @@ class RecSys:
 		len_user = 73517
 		len_w = 34528
 		self.U = self.get_randvec(len_user,k)
+		self.Bu = np.zeros((len_user,1))
 		self.W = self.get_randvec(len_w,k)
+		self.Bw = np.zeros((len_w,1))
 		self.k = k
 		self.name2id = name2id
 		self.id2name = np.array(id2name)
-		self.know = dict()
+		self.know_train = dict()
 		self.know_test = dict()
 		self.uD = dict()
 		self.wD = dict()
 		self.rating_generator = rating_generator
-		self.process_ratings()
-		self.process_ratings()
+		self.process_train()
+		self.process_train()
 		self.process_test()
 		self.calcule_mean()
 		self.reg = reg
@@ -28,9 +30,9 @@ class RecSys:
 		return np.random.randn(N,D) / D
 
 	#Get valid item rates
-	def process_ratings(self):
+	def process_train(self):
 		data = next(self.rating_generator)
-		know = self.know
+		know = self.know_train
 		uD = self.uD
 		wD = self.wD
 		for rate in data:
@@ -60,58 +62,94 @@ class RecSys:
 
 	def calcule_mean(self):
 		self.user_mean = dict()
+		self.global_mean = 0.0
+		uD = self.uD
+		know = self.know_train
+		count = 0.0
 		#For each item, calculate mean and subtract on know vector
 		for uid in self.uD:
 			sumv = 0
-			for wid in self.uD[uid]:
-				sumv += self.know[uid,wid]
-			sumv /= len(self.uD[uid])
+			for wid in uD[uid]:
+				sumv += know[uid,wid]
+				count += 1
+			self.global_mean += sumv
+			sumv /= len(uD[uid])
 			self.user_mean[uid] = sumv
 
+		self.global_mean /= count
+
 	def cost(self, uid, wid, uorw):
-		error = np.dot(self.U[uid],self.W[wid].T) + self.user_mean[uid] - self.know[uid,wid]
+		# get references
+		U = self.U[uid]
+		Bu = self.Bu[uid]
+		W = self.W[wid]
+		Bw = self.Bw[wid]
+		user_mean = self.user_mean[uid]
+		global_mean = self.global_mean
+		know = self.know_train[uid,wid]
+		reg = self.reg
+
+		error = np.dot(U,W.T) + global_mean + Bu + Bw - know
 		loss = 0.5 * error**2
 		if uorw == 0:
-			regularization = 0.5 * self.reg * np.linalg.norm(self.U[uid])**2
+			regularization = 0.5 * reg * np.linalg.norm(U)**2
 		else:
-			regularization = 0.5 * self.reg * np.linalg.norm(self.W[wid])**2
+			regularization = 0.5 * reg * np.linalg.norm(W)**2
 		return loss + regularization, error
 
 	def train(self):
+
+		uD = self.uD
+		Bu = self.Bu
+		wD = self.wD
+		Bw = self.Bw
+		k = self.k
+		U = self.U
+		W = self.W
+		reg = self.reg
+		eta = self.eta
 		tloss = 0.0
 
 		#For each user
-		for uid in self.uD:
+		for uid in uD:
 			#Animes that rate for uid:
-			Ruw = self.uD[uid]
-			grad = np.zeros(self.k).astype(np.float)
+			Ruw = uD[uid]
+			grad = np.zeros(k).astype(np.float)
+			gradB = 0.0
 			loss = 0.0
 			for wid in Ruw:
 				temp, error = self.cost(uid,wid,0)
-				grad += error*self.W[wid] + self.reg*self.U[uid]
+				grad += error*W[wid] + reg*U[uid]
+				gradB += error
 				loss += temp
 			grad = grad / len(Ruw)
+			gradB = gradB / len(Ruw)
 			loss /= len(Ruw)
 			tloss += loss
-			self.U[uid] -= self.eta*grad
+			U[uid] -= eta*grad
+			Bu[uid] -= eta*gradB
 
 		#For each item
-		for wid in self.wD:
+		for wid in wD:
 			#User that rate the anime wid:
-			Ruw = self.wD[wid]
-			grad = np.zeros(self.k).astype(np.float)
+			Ruw = wD[wid]
+			grad = np.zeros(k).astype(np.float)
+			gradB = 0.0
 			loss = 0.0
 			for uid in Ruw:
 				temp, error = self.cost(uid,wid,1)
-				grad += error*self.U[uid] + self.reg*self.W[wid]
+				grad += error*U[uid] + reg*W[wid]
+				gradB += error
 				loss += temp
 			grad = grad / len(Ruw)
+			gradB = gradB / len(Ruw)
 			loss /= len(Ruw)
 			tloss += loss
-			self.W[wid] -= self.eta*grad
+			W[wid] -= eta*grad
+			Bw[wid] -= eta*gradB
 
 
-		return tloss / len(self.uD)
+		return tloss / (len(uD) + len(wD))
 
 	#Unsuperved learning... Don't need to y
 	def fit(self):
@@ -133,13 +171,13 @@ class RecSys:
 	def predict(self, user, item):
 		a = self.U[user]
 		b = self.W[item]
-		return np.dot(a,b) + self.user_mean[user]
+		return np.dot(a,b) + self.global_mean + self.Bu[user] + self.Bw[item]
 
 	def evaluate(self, test=False, log=False):
 		if test is True:
 			know = self.know_test
 		else:
-			know = self.know
+			know = self.know_train
 
 		loss = 0.0
 		count = 0

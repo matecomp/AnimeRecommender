@@ -1,5 +1,6 @@
 from RecommenderSystem.RecSys import *
 from Datasets.loader import *
+from Embedding.TSNE import *
 
 #Using model
 def _start_shell(local_ns=None):
@@ -23,7 +24,6 @@ if __name__ == '__main__':
 
 	itens = next(anime_generator)
 	name2id, id2name = preprocessing(itens)
-	# print(len(itens), len(name2id), len(id2name))
 	
 	#Config
 	features = 100
@@ -33,3 +33,5 @@ if __name__ == '__main__':
 
 	model = RecSys(name2id, id2name, rating_generator, features, reg, eta, epochs)
 	_start_shell()
+
+	# saveTSNE(model.W,model.id2name,50)

@@ -5,10 +5,10 @@ class RecSys:
 	def __init__(self, name2id, id2name, rating_generator, k, reg, eta, epochs):
 		len_user = 73517
 		len_w = 34528
-		self.U = self.get_randvec(len_user,k)
-		self.Bu = np.zeros((len_user,1))
-		self.W = self.get_randvec(len_w,k)
-		self.Bw = np.zeros((len_w,1))
+		self.U = self.weights_init(len_user,k)
+		self.W = self.weights_init(len_w,k)
+		self.Bu = self.bias_init(len_user)
+		self.Bw = self.bias_init(len_w)
 		self.k = k
 		self.name2id = name2id
 		self.id2name = np.array(id2name)
@@ -26,8 +26,11 @@ class RecSys:
 		self.epochs = epochs
 
 	#Build init vector for user or item
-	def get_randvec(self, N, D):
+	def weights_init(self, N, D):
 		return np.random.randn(N,D) / D
+
+	def bias_init(self, N):
+		return np.zeros(N)
 
 	#Get valid item rates
 	def process_train(self):

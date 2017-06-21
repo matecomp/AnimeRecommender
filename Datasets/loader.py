@@ -7,32 +7,35 @@ import sys
 myanimelist_anime = '../Datasets/MyAnimeList/anime.csv'
 myanimelist_rating = '../Datasets/MyAnimeList/rating.csv'
 len_user = 73517
-len_anime = 34528
+len_anime = 12294
 name = "MyAnimeList"
 link = "https://storage.googleapis.com/kaggle-datasets/571/1094/anime-recommendations-database.zip?GoogleAccessId=datasets@kaggle-161607.iam.gserviceaccount.com&Expires=1497664649&Signature=E9VT09SgXL3CV%2Fhy2HZR%2BlaepIY6ZIEuTJL27rgUDimbMWjiK7mkMnyw%2FJEhe%2B88v%2FeEueiEUpf6RABmJURlMfUl07gpm4uBqrr6N4lPjNsvDwEvXWWIWXVN%2FP9Gg2f3WmrzgEkDBNva5MF%2BEMDYVzj62Hcwhw5VE8Q3lOz8uNOmXnBHvEnyCh7HVnXuIa2Q6ZBvWnug%2FaUWcAwr1p6uovzcmdT8NhOjPd%2FdoVp3pZbzsnXHMtI1ltawApnAID6bJtnJM5VdRhOBqn%2BpDJw8sRuhAnMNqHszuVNDJrEbuZNWm8ZXCLOtyqWi0DNsusnAPPtvhMANsg9IDT%2BeHjJmhw%3D%3D"
+
 
 def preprocessing(itens):
 	id2name = [""]*(len_anime)
 	name2id = dict()
+	iditem2id = dict()
 
-	for item in itens:
+	for i, item in enumerate(itens):
 		idx = int(item[0])
-		name2id[item[1]] = idx
-		id2name[idx] = item[1]
-	
-	return name2id, id2name
+		iditem2id[idx] = i
+		name2id[item[1]] = i
+		id2name[i] = item[1]
+
+	return name2id, id2name, iditem2id
 
 #This function read a CSV file and return a list with each row file per element
 def read_csv(archive, feature_ignore=True, size=None):
 	# when size is not defiened we use all data
 	if size is None:
 		with open(archive) as csvfile:
-			reader = csv.reader(csvfile)
-			size = sum([1 for row in reader]) - 1
+			reader = csv.reader(csvfile, delimiter=',')
+			size = sum([1 for row in reader])-1
+			print(size)
 
 	with open(archive) as csvfile:
 		reader = csv.reader(csvfile)
-		
 		data = list()
 		copy = list()
 		indexed = 1
@@ -67,7 +70,7 @@ def load(itemfile=None, ratingfile=None, feature_ignore=True, size=None, dataset
 
 	itens_generator = read_csv(itemfile, feature_ignore)
 	ratings_generator = read_csv(ratingfile, feature_ignore, size)
-	
+
 	return itens_generator, ratings_generator
 
 

@@ -2,15 +2,16 @@ import numpy as np
 
 class RecSys:
 	#Constructor
-	def __init__(self, name2id, id2name, rating_generator, k, reg, eta, epochs):
-		len_user = 73517
-		len_w = 34528
+	def __init__(self, name2id, id2name, iditem2id, rating_generator, k, reg, eta, epochs):
+		len_user = 73516
+		len_w = len(name2id)
 		self.U = self.weights_init(len_user,k)
 		self.W = self.weights_init(len_w,k)
 		self.Bu = self.bias_init(len_user)
 		self.Bw = self.bias_init(len_w)
 		self.k = k
 		self.name2id = name2id
+		self.iditem2id = iditem2id
 		self.id2name = np.array(id2name)
 		self.know_train = dict()
 		self.know_test = dict()
@@ -39,8 +40,8 @@ class RecSys:
 		uD = self.uD
 		wD = self.wD
 		for rate in data:
-			uid = int(rate[0])
-			wid = int(rate[1])
+			uid = int(rate[0]) - 1
+			wid = self.iditem2id[int(rate[1])]
 			value = float(rate[2])
 			if value != -1:
 				know[uid,wid] = value
@@ -57,8 +58,8 @@ class RecSys:
 		know = self.know_test
 
 		for rate in data:
-			uid = int(rate[0])
-			wid = int(rate[1])
+			uid = int(rate[0]) - 1
+			wid = self.iditem2id[int(rate[1])]
 			value = float(rate[2])
 			if value != -1:
 				know[uid,wid] = value
@@ -165,7 +166,7 @@ class RecSys:
 	def item_neighbors(self, item_name, samples=5):
 		item_id = self.name2id[item_name]
 		item_vector = self.W[item_id]
-		normalize_dots =  np.dot(item_vector,self.W.T) 
+		normalize_dots =  np.dot(item_vector,self.W.T)
 		normalize_dots /= np.linalg.norm(self.W,axis=1)
 		neighbors = np.argsort(normalize_dots)[::-1]
 		return self.id2name[neighbors[1:samples]]

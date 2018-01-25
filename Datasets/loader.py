@@ -9,7 +9,7 @@ myanimelist_rating = '../Datasets/MyAnimeList/rating.csv'
 len_user = 73517
 len_anime = 12294
 name = "MyAnimeList"
-link = "https://storage.googleapis.com/kaggle-datasets/571/1094/anime-recommendations-database.zip?GoogleAccessId=datasets@kaggle-161607.iam.gserviceaccount.com&Expires=1497664649&Signature=E9VT09SgXL3CV%2Fhy2HZR%2BlaepIY6ZIEuTJL27rgUDimbMWjiK7mkMnyw%2FJEhe%2B88v%2FeEueiEUpf6RABmJURlMfUl07gpm4uBqrr6N4lPjNsvDwEvXWWIWXVN%2FP9Gg2f3WmrzgEkDBNva5MF%2BEMDYVzj62Hcwhw5VE8Q3lOz8uNOmXnBHvEnyCh7HVnXuIa2Q6ZBvWnug%2FaUWcAwr1p6uovzcmdT8NhOjPd%2FdoVp3pZbzsnXHMtI1ltawApnAID6bJtnJM5VdRhOBqn%2BpDJw8sRuhAnMNqHszuVNDJrEbuZNWm8ZXCLOtyqWi0DNsusnAPPtvhMANsg9IDT%2BeHjJmhw%3D%3D"
+link = "https://www.kaggle.com/CooperUnion/anime-recommendations-database/downloads/anime-recommendations-database.zip"
 
 
 def preprocessing(itens):
